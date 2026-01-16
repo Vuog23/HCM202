@@ -1,0 +1,121 @@
+# ===================================
+# .gitignore for HCM202 Website
+# ===================================
+
+# API Keys & Secrets
+*.env
+.env
+.env.local
+.env.production
+config.js
+secrets.js
+api-keys.txt
+
+# API Key trong script (nếu tách riêng)
+script.production.js
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+.cache/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+*-backup.*
+
+# Personal notes
+NOTES.md
+TODO.md
+personal/# ===================================
+# .gitignore for HCM202 Website
+# ===================================
+
+# API Keys & Secrets
+*.env
+.env
+.env.local
+.env.production
+config.js
+secrets.js
+api-keys.txt
+
+# API Key trong script (nếu tách riêng)
+script.production.js
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist/
+build/
+.cache/
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.bak
+*.backup
+*-backup.*
+
+# Personal notes
+NOTES.md
+TODO.md
+personal/
