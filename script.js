@@ -5,6 +5,15 @@ let chatMessages = [];
 let isTyping = false;
 
 // ===================================
+// DETECT ENVIRONMENT
+// ===================================
+const IS_PRODUCTION = window.location.hostname !== 'localhost' && 
+                      window.location.hostname !== '127.0.0.1' &&
+                      !window.location.hostname.includes('file://');
+
+console.log('🌍 Environment:', IS_PRODUCTION ? 'PRODUCTION' : 'LOCAL DEVELOPMENT');
+
+// ===================================
 // DOM CONTENT LOADED
 // ===================================
 document.addEventListener('DOMContentLoaded', function() {
@@ -24,7 +33,6 @@ function initializeNavigation() {
     
     navLinks.forEach(link => {
         link.addEventListener('click', function(e) {
-            // Only prevent default if it's a hash link
             if (this.getAttribute('href').startsWith('#')) {
                 e.preventDefault();
                 
@@ -32,7 +40,6 @@ function initializeNavigation() {
                 const targetElement = document.querySelector(targetId);
                 
                 if (targetElement) {
-                    // Smooth scroll to target
                     const navbarHeight = document.querySelector('.navbar').offsetHeight;
                     const headerHeight = document.querySelector('.header').offsetHeight;
                     const offset = navbarHeight + headerHeight + 20;
@@ -44,7 +51,6 @@ function initializeNavigation() {
                         behavior: 'smooth'
                     });
                     
-                    // Update active state for nav links
                     if (this.classList.contains('nav-link')) {
                         document.querySelectorAll('.nav-link').forEach(navLink => {
                             navLink.classList.remove('active');
@@ -61,7 +67,6 @@ function initializeNavigation() {
 // SMOOTH SCROLL
 // ===================================
 function initializeSmoothScroll() {
-    // Already handled in navigation, but can add additional smooth scroll behaviors here
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         if (!anchor.classList.contains('nav-link') && 
             !anchor.classList.contains('sidebar-link') && 
@@ -139,7 +144,6 @@ function highlightActiveSection() {
 // RESPONSIVE NAVIGATION
 // ===================================
 function initializeResponsiveNav() {
-    // Add mobile menu functionality if needed
     const navbar = document.getElementById('navbar');
     let lastScroll = 0;
     
@@ -147,10 +151,8 @@ function initializeResponsiveNav() {
         const currentScroll = window.pageYOffset;
         
         if (currentScroll > lastScroll && currentScroll > 200) {
-            // Scrolling down
             navbar.style.transform = 'translateY(-100%)';
         } else {
-            // Scrolling up
             navbar.style.transform = 'translateY(0)';
         }
         
@@ -170,7 +172,6 @@ function initializeChatWidget() {
     const chatInput = document.getElementById('chatInput');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
     
-    // Toggle chat widget
     if (chatToggleBtn) {
         chatToggleBtn.addEventListener('click', function() {
             toggleChat();
@@ -184,21 +185,18 @@ function initializeChatWidget() {
         });
     }
     
-    // Close chat
     if (chatClose) {
         chatClose.addEventListener('click', function() {
             closeChat();
         });
     }
     
-    // Send message
     if (chatSend) {
         chatSend.addEventListener('click', function() {
             sendMessage();
         });
     }
     
-    // Send message on Enter (but allow Shift+Enter for new line)
     if (chatInput) {
         chatInput.addEventListener('keydown', function(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -207,14 +205,12 @@ function initializeChatWidget() {
             }
         });
         
-        // Auto-resize textarea
         chatInput.addEventListener('input', function() {
             this.style.height = 'auto';
             this.style.height = Math.min(this.scrollHeight, 120) + 'px';
         });
     }
     
-    // Suggestion buttons
     suggestionBtns.forEach(btn => {
         btn.addEventListener('click', function() {
             const message = this.getAttribute('data-message');
@@ -244,19 +240,15 @@ async function sendMessage() {
     
     if (!message || isTyping) return;
     
-    // Add user message to chat
     addMessageToChat(message, 'user');
     
-    // Clear input
     chatInput.value = '';
     chatInput.style.height = 'auto';
     
-    // Call AI API
     isTyping = true;
     showTypingIndicator();
     
     try {
-        // Gọi Groq Cloud API
         const aiResponse = await generateAIResponse(message);
         removeTypingIndicator();
         addMessageToChat(aiResponse, 'ai');
@@ -264,7 +256,7 @@ async function sendMessage() {
         removeTypingIndicator();
         console.error('Error getting AI response:', error);
         addMessageToChat(
-            'Xin lỗi, đã xảy ra lỗi khi xử lý câu hỏi của bạn. Vui lòng thử lại sau hoặc kiểm tra kết nối internet.',
+            'Xin lỗi, đã xảy ra lỗi khi xử lý câu hỏi của bạn. Vui lòng thử lại sau.',
             'ai'
         );
     } finally {
@@ -275,7 +267,6 @@ async function sendMessage() {
 function addMessageToChat(message, sender) {
     const chatBody = document.getElementById('chatBody');
     
-    // Remove welcome message if it exists
     const welcomeMsg = chatBody.querySelector('.chat-welcome');
     if (welcomeMsg) {
         welcomeMsg.remove();
@@ -287,11 +278,9 @@ function addMessageToChat(message, sender) {
     const bubble = document.createElement('div');
     bubble.className = 'message-bubble';
     
-    // Nếu là AI response, render markdown
     if (sender === 'ai') {
         bubble.innerHTML = renderMarkdown(message);
         
-        // Thêm nút copy cho AI response
         const copyBtn = document.createElement('button');
         copyBtn.className = 'copy-btn';
         copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
@@ -301,14 +290,12 @@ function addMessageToChat(message, sender) {
         };
         bubble.appendChild(copyBtn);
     } else {
-        // User message giữ nguyên plain text
         bubble.textContent = message;
     }
     
     messageDiv.appendChild(bubble);
     chatBody.appendChild(messageDiv);
     
-    // Scroll to bottom smoothly
     setTimeout(() => {
         chatBody.scrollTo({
             top: chatBody.scrollHeight,
@@ -316,16 +303,11 @@ function addMessageToChat(message, sender) {
         });
     }, 100);
     
-    // Store message
     chatMessages.push({ message, sender, timestamp: Date.now() });
 }
 
-/**
- * Copy text to clipboard với feedback
- */
 function copyToClipboard(text, button) {
     navigator.clipboard.writeText(text).then(() => {
-        // Success feedback
         const originalHTML = button.innerHTML;
         button.innerHTML = '<i class="fas fa-check"></i>';
         button.classList.add('copied');
@@ -336,139 +318,11 @@ function copyToClipboard(text, button) {
         }, 2000);
     }).catch(err => {
         console.error('Copy failed:', err);
-        // Fallback: show error
         button.innerHTML = '<i class="fas fa-times"></i>';
         setTimeout(() => {
             button.innerHTML = '<i class="fas fa-copy"></i>';
         }, 2000);
     });
-}
-
-/**
- * Render markdown text thành HTML
- * Hỗ trợ: bold, italic, lists, headers, code blocks, links, blockquotes
- */
-function renderMarkdown(text) {
-    if (!text) return '';
-    
-    let html = text;
-    
-    // Step 1: Protect code blocks from further processing
-    const codeBlocks = [];
-    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
-        const index = codeBlocks.length;
-        codeBlocks.push(`<pre><code class="language-${lang || 'text'}">${escapeHtml(code.trim())}</code></pre>`);
-        return `___CODE_BLOCK_${index}___`;
-    });
-    
-    // Step 2: Protect inline code
-    const inlineCodes = [];
-    html = html.replace(/`([^`]+)`/g, function(match, code) {
-        const index = inlineCodes.length;
-        inlineCodes.push(`<code>${escapeHtml(code)}</code>`);
-        return `___INLINE_CODE_${index}___`;
-    });
-    
-    // Step 3: Process headers (must be on their own line)
-    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-    
-    // Step 4: Process bold and italic
-    // Bold: **text** or __text__
-    html = html.replace(/\*\*([^\*\n]+)\*\*/g, '<strong>$1</strong>');
-    html = html.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
-    
-    // Italic: *text* or _text_ (but not inside words)
-    html = html.replace(/(?<!\w)\*([^\*\n]+)\*(?!\w)/g, '<em>$1</em>');
-    html = html.replace(/(?<!\w)_([^_\n]+)_(?!\w)/g, '<em>$1</em>');
-    
-    // Step 5: Process links [text](url)
-    html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-    
-    // Step 6: Process lists
-    // Split into lines for list processing
-    const lines = html.split('\n');
-    const processedLines = [];
-    let inList = false;
-    let listType = null;
-    
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmedLine = line.trim();
-        
-        // Check for unordered list (- or *)
-        const unorderedMatch = trimmedLine.match(/^[-*]\s+(.+)$/);
-        // Check for ordered list (1. , 2. , etc.)
-        const orderedMatch = trimmedLine.match(/^\d+\.\s+(.+)$/);
-        
-        if (unorderedMatch) {
-            if (!inList || listType !== 'ul') {
-                if (inList) processedLines.push(`</${listType}>`);
-                processedLines.push('<ul>');
-                listType = 'ul';
-                inList = true;
-            }
-            processedLines.push(`<li>${unorderedMatch[1]}</li>`);
-        } else if (orderedMatch) {
-            if (!inList || listType !== 'ol') {
-                if (inList) processedLines.push(`</${listType}>`);
-                processedLines.push('<ol>');
-                listType = 'ol';
-                inList = true;
-            }
-            processedLines.push(`<li>${orderedMatch[1]}</li>`);
-        } else {
-            if (inList) {
-                processedLines.push(`</${listType}>`);
-                inList = false;
-                listType = null;
-            }
-            processedLines.push(line);
-        }
-    }
-    
-    // Close any open list
-    if (inList) {
-        processedLines.push(`</${listType}>`);
-    }
-    
-    html = processedLines.join('\n');
-    
-    // Step 7: Process blockquotes (> text)
-    html = html.replace(/^&gt;\s*(.+)$/gim, '<blockquote>$1</blockquote>');
-    
-    // Step 8: Process line breaks and paragraphs
-    // Convert double newlines to paragraph breaks
-    html = html.split('\n\n').map(para => {
-        para = para.trim();
-        // Don't wrap if already has block-level elements
-        if (para.match(/^<(h[1-6]|ul|ol|pre|blockquote)/)) {
-            return para;
-        }
-        return para ? `<p>${para.replace(/\n/g, '<br>')}</p>` : '';
-    }).join('\n');
-    
-    // Step 9: Restore code blocks
-    codeBlocks.forEach((block, index) => {
-        html = html.replace(`___CODE_BLOCK_${index}___`, block);
-    });
-    
-    // Step 10: Restore inline codes
-    inlineCodes.forEach((code, index) => {
-        html = html.replace(`___INLINE_CODE_${index}___`, code);
-    });
-    
-    return html;
-}
-
-/**
- * Escape HTML để tránh XSS
- */
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 function showTypingIndicator() {
@@ -488,7 +342,6 @@ function showTypingIndicator() {
     
     chatBody.scrollTop = chatBody.scrollHeight;
     
-    // Animate dots
     const dots = bubble.querySelectorAll('span');
     dots.forEach((dot, index) => {
         dot.style.animation = `bounce 1.4s infinite ${index * 0.2}s`;
@@ -503,10 +356,9 @@ function removeTypingIndicator() {
 }
 
 // ===================================
-// AI RESPONSE GENERATOR (GROQ CLOUD API)
+// AI RESPONSE GENERATOR (DUAL MODE)
 // ===================================
 
-// SYSTEM PROMPT - Chuyên gia về Tư tưởng Hồ Chí Minh
 const SYSTEM_PROMPT = `Bạn là một trợ lý học thuật chuyên sâu về môn học **Tư Tưởng Hồ Chí Minh**.
 
 Nhiệm vụ của bạn:
@@ -539,238 +391,266 @@ Yêu cầu bổ sung:
 
 Luôn đặt mục tiêu: **giúp người học hiểu đúng, nhớ lâu, và vận dụng tốt Tư tưởng Hồ Chí Minh**.`;
 
-/**
- * Hàm gọi Groq Cloud API để sinh response từ AI
- * @param {string} userMessage - Câu hỏi của người dùng
- * @returns {Promise<string>} - Câu trả lời từ AI
- */
 async function generateAIResponse(userMessage) {
-    // ⚠️ QUAN TRỌNG: SETUP API KEY
-    // 
-    // CÁCH 1 (KHUYẾN NGHỊ): Dùng config.js
-    // -------------------------------------
-    // 1. Copy file config.example.js → config.js
-    // 2. Paste API key vào config.js
-    // 3. Thêm vào index.html: <script src="config.js"></script>
-    // 4. config.js không bị push lên GitHub (có trong .gitignore)
-    //
-    // CÁCH 2: Paste trực tiếp (CHỈ CHO LOCAL)
-    // -------------------------------------
-    // Uncomment dòng dưới và paste API key:
-    // const GROQ_API_KEY = 'gsk_xxxxxxxxxxxxx';
-    //
-    // ⚠️ NHỚ: Xóa API key trước khi push lên GitHub!
+    if (IS_PRODUCTION) {
+        // ===================================
+        // PRODUCTION MODE (Vercel)
+        // ===================================
+        return await generateAIResponseProduction(userMessage);
+    } else {
+        // ===================================
+        // LOCAL DEVELOPMENT MODE
+        // ===================================
+        return await generateAIResponseLocal(userMessage);
+    }
+}
+
+/**
+ * Production mode - Gọi backend API trên Vercel
+ */
+async function generateAIResponseProduction(userMessage) {
+    const API_ENDPOINT = '/api/chat';
     
+    try {
+        console.log('🔄 [PRODUCTION] Calling backend API...');
+        
+        const response = await fetch(API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                model: 'llama-3.3-70b-versatile',
+                messages: [
+                    { role: 'system', content: SYSTEM_PROMPT },
+                    { role: 'user', content: userMessage }
+                ],
+                temperature: 0.8,
+                max_tokens: 4096
+            })
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('API Error:', errorData);
+            
+            if (response.status === 401) {
+                return '❌ Lỗi xác thực API key. Vui lòng liên hệ admin.';
+            } else if (response.status === 429) {
+                return '⚠️ Quá nhiều request. Vui lòng đợi 1 phút.';
+            }
+            return `❌ Lỗi: ${errorData.error?.message || 'Unknown error'}`;
+        }
+        
+        const data = await response.json();
+        
+        if (data.choices && data.choices.length > 0) {
+            return data.choices[0].message.content;
+        }
+        
+        throw new Error('No response from AI');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        return '❌ Lỗi kết nối backend. Vui lòng thử lại.';
+    }
+}
+
+/**
+ * Local development mode - Gọi trực tiếp Groq API với config.js
+ */
+async function generateAIResponseLocal(userMessage) {
     let apiKey = 'YOUR_GROQ_API_KEY_HERE';
     
-    // Thử đọc từ config.js nếu có
+    // Thử đọc từ config.js
     if (typeof CONFIG !== 'undefined' && CONFIG.GROQ_API_KEY) {
         apiKey = CONFIG.GROQ_API_KEY;
     }
     
-    // Kiểm tra API key đã được setup chưa
+    // Check API key
     if (apiKey === 'YOUR_GROQ_API_KEY_HERE') {
-        return `❌ **Chưa Setup API Key**
+        return `❌ **[LOCAL MODE] Chưa Setup API Key**
 
-Vui lòng setup API key theo 1 trong 2 cách:
+Bạn đang chạy ở chế độ LOCAL DEVELOPMENT.
 
-**CÁCH 1: Dùng config.js (An toàn - Khuyến nghị)**
+Để test local, cần setup API key:
+
+**CÁCH 1: Dùng config.js (Khuyến nghị)**
 1. Copy file \`config.example.js\` thành \`config.js\`
 2. Mở \`config.js\` và paste API key vào
-3. Trong \`index.html\`, thêm dòng này TRƯỚC \`<script src="script.js">\`:
-   \`\`\`html
-   <script src="config.js"></script>
-   \`\`\`
-4. File \`config.js\` không bị push lên GitHub (đã có trong .gitignore)
+3. Trong \`index.html\`, thêm: \`<script src="config.js"></script>\`
+4. Refresh lại trang
 
-**CÁCH 2: Paste trực tiếp (Chỉ cho testing local)**
-1. Mở file \`script.js\`
-2. Tìm dòng: \`let apiKey = 'YOUR_GROQ_API_KEY_HERE';\`
-3. Thay bằng: \`let apiKey = 'gsk_xxxxxxxx';\`
-4. ⚠️ **QUAN TRỌNG**: Xóa API key trước khi push lên GitHub!
+**CÁCH 2: Deploy lên Vercel**
+Deploy website lên Vercel thì không cần config.js nữa!
+Xem hướng dẫn trong VERCEL_DEPLOY_GUIDE.md
 
 Lấy API key tại: https://console.groq.com`;
     }
     
-    // Đọc config (từ file hoặc default)
-    const apiUrl = (typeof CONFIG !== 'undefined' && CONFIG.GROQ_API_URL) 
-        ? CONFIG.GROQ_API_URL 
-        : 'https://api.groq.com/openai/v1/chat/completions';
-        
-    const model = (typeof CONFIG !== 'undefined' && CONFIG.MODEL)
-        ? CONFIG.MODEL
-        : 'llama-3.3-70b-versatile';
-        
-    const temperature = (typeof CONFIG !== 'undefined' && CONFIG.TEMPERATURE)
-        ? CONFIG.TEMPERATURE
-        : 0.8;
-        
-    const maxTokens = (typeof CONFIG !== 'undefined' && CONFIG.MAX_TOKENS)
-        ? CONFIG.MAX_TOKENS
-        : 4096;
-    
     try {
-        console.log('🔄 Đang gọi Groq API...');
-        console.log('📝 User message:', userMessage);
+        console.log('🔄 [LOCAL] Calling Groq API directly...');
         
-        const response = await fetch(apiUrl, {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`
             },
             body: JSON.stringify({
-                model: model,
+                model: 'llama-3.3-70b-versatile',
                 messages: [
-                    {
-                        role: 'system',
-                        content: SYSTEM_PROMPT
-                    },
-                    {
-                        role: 'user',
-                        content: userMessage
-                    }
+                    { role: 'system', content: SYSTEM_PROMPT },
+                    { role: 'user', content: userMessage }
                 ],
-                temperature: temperature,
-                max_tokens: maxTokens,
+                temperature: 0.8,
+                max_tokens: 4096,
                 top_p: 1,
                 stream: false
             })
         });
         
-        console.log('📡 Response status:', response.status);
-        
-        // Kiểm tra response status
         if (!response.ok) {
-            let errorData;
-            try {
-                errorData = await response.json();
-            } catch (e) {
-                errorData = { error: 'Unknown error' };
-            }
+            const errorData = await response.json();
+            console.error('Groq API Error:', errorData);
             
-            console.error('❌ Groq API Error:', errorData);
-            console.error('Status:', response.status);
-            console.error('Status Text:', response.statusText);
-            
-            // Xử lý các loại lỗi khác nhau
             if (response.status === 401) {
-                return '❌ **Lỗi xác thực API**\n\nAPI key không hợp lệ. Vui lòng kiểm tra:\n\n1. API key đã được paste đúng vào script.js (dòng 378)\n2. Không có khoảng trắng thừa\n3. Key bắt đầu bằng "gsk_"\n\n💡 Hướng dẫn lấy API key mới:\n- Vào https://console.groq.com\n- Tạo API key mới\n- Copy và paste vào script.js';
+                return '❌ API key không hợp lệ. Vui lòng kiểm tra lại config.js';
             } else if (response.status === 429) {
-                return '⚠️ **Vượt quá giới hạn**\n\nBạn đã gửi quá nhiều request. Vui lòng:\n- Đợi 1-2 phút\n- Thử lại sau\n\n💡 Tip: Tránh spam nhiều tin nhắn liên tiếp.';
-            } else if (response.status === 400) {
-                return `❌ **Lỗi request không hợp lệ**\n\nChi tiết: ${errorData.error?.message || 'Unknown error'}\n\nCó thể do:\n- Model name không đúng\n- Request format sai\n- Token quá dài\n\n💡 Kiểm tra Console (F12) để xem chi tiết.`;
-            } else {
-                return `❌ **Lỗi từ Groq API**\n\nMã lỗi: ${response.status}\nChi tiết: ${errorData.error?.message || response.statusText}\n\n💡 Vui lòng thử lại sau hoặc kiểm tra https://status.groq.com`;
+                return '⚠️ Quá nhiều request. Vui lòng đợi 1-2 phút.';
             }
+            return `❌ Lỗi: ${errorData.error?.message || 'Unknown'}`;
         }
         
         const data = await response.json();
-        console.log('✅ Response received:', data);
         
-        // Kiểm tra xem có data không
         if (data.choices && data.choices.length > 0) {
-            const aiMessage = data.choices[0].message.content;
-            console.log('💬 AI response:', aiMessage.substring(0, 100) + '...');
-            return aiMessage;
-        } else {
-            throw new Error('Không nhận được response từ AI');
+            return data.choices[0].message.content;
         }
+        
+        throw new Error('No response from AI');
         
     } catch (error) {
-        console.error('💥 Error calling Groq API:', error);
-        console.error('Error details:', {
-            name: error.name,
-            message: error.message,
-            stack: error.stack
-        });
+        console.error('Error:', error);
         
-        // Xử lý các loại lỗi
-        if (error.name === 'TypeError' && error.message.includes('fetch')) {
-            return '🌐 **Lỗi kết nối**\n\nKhông thể kết nối với Groq API. Vui lòng:\n- Kiểm tra kết nối internet\n- Kiểm tra firewall/VPN\n- Thử lại sau';
+        if (error.message.includes('fetch')) {
+            return '🌐 Lỗi kết nối. Kiểm tra internet và thử lại.';
         }
         
-        if (error.message.includes('API key')) {
-            return '🔑 **Lỗi API Key**\n\nVui lòng kiểm tra lại API key trong file script.js';
-        }
-        
-        return `❌ **Đã xảy ra lỗi**\n\n${error.message}\n\n💡 Mở Console (F12) để xem chi tiết lỗi.`;
+        return `❌ Lỗi: ${error.message}`;
     }
 }
 
-/**
- * PHIÊN BẢN STREAMING (Tùy chọn nâng cao)
- * Nếu muốn hiển thị text từng chữ một như ChatGPT, dùng hàm này
- * Uncomment để sử dụng
- */
-/*
-async function generateAIResponseStreaming(userMessage, onChunk) {
-    const GROQ_API_KEY = 'YOUR_GROQ_API_KEY_HERE';
-    const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
+// ===================================
+// MARKDOWN RENDERER
+// ===================================
+
+function renderMarkdown(text) {
+    if (!text) return '';
     
-    try {
-        const response = await fetch(GROQ_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${GROQ_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'openai/gpt-oss-120b',
-                messages: [
-                    { role: 'system', content: SYSTEM_PROMPT },
-                    { role: 'user', content: userMessage }
-                ],
-                temperature: 1,
-                max_tokens: 8192,
-                stream: true // Enable streaming
-            })
-        });
+    let html = text;
+    
+    const codeBlocks = [];
+    html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
+        const index = codeBlocks.length;
+        codeBlocks.push(`<pre><code class="language-${lang || 'text'}">${escapeHtml(code.trim())}</code></pre>`);
+        return `___CODE_BLOCK_${index}___`;
+    });
+    
+    const inlineCodes = [];
+    html = html.replace(/`([^`]+)`/g, function(match, code) {
+        const index = inlineCodes.length;
+        inlineCodes.push(`<code>${escapeHtml(code)}</code>`);
+        return `___INLINE_CODE_${index}___`;
+    });
+    
+    html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+    html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+    html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+    
+    html = html.replace(/\*\*([^\*\n]+)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/__([^_\n]+)__/g, '<strong>$1</strong>');
+    
+    html = html.replace(/(?<!\w)\*([^\*\n]+)\*(?!\w)/g, '<em>$1</em>');
+    html = html.replace(/(?<!\w)_([^_\n]+)_(?!\w)/g, '<em>$1</em>');
+    
+    html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    const lines = html.split('\n');
+    const processedLines = [];
+    let inList = false;
+    let listType = null;
+    
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmedLine = line.trim();
         
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullText = '';
+        const unorderedMatch = trimmedLine.match(/^[-*]\s+(.+)$/);
+        const orderedMatch = trimmedLine.match(/^\d+\.\s+(.+)$/);
         
-        while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            const chunk = decoder.decode(value);
-            const lines = chunk.split('\n').filter(line => line.trim() !== '');
-            
-            for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                    const jsonStr = line.slice(6);
-                    if (jsonStr === '[DONE]') continue;
-                    
-                    try {
-                        const json = JSON.parse(jsonStr);
-                        const content = json.choices[0]?.delta?.content || '';
-                        if (content) {
-                            fullText += content;
-                            onChunk(content); // Callback để update UI
-                        }
-                    } catch (e) {
-                        console.error('Parse error:', e);
-                    }
-                }
+        if (unorderedMatch) {
+            if (!inList || listType !== 'ul') {
+                if (inList) processedLines.push(`</${listType}>`);
+                processedLines.push('<ul>');
+                listType = 'ul';
+                inList = true;
             }
+            processedLines.push(`<li>${unorderedMatch[1]}</li>`);
+        } else if (orderedMatch) {
+            if (!inList || listType !== 'ol') {
+                if (inList) processedLines.push(`</${listType}>`);
+                processedLines.push('<ol>');
+                listType = 'ol';
+                inList = true;
+            }
+            processedLines.push(`<li>${orderedMatch[1]}</li>`);
+        } else {
+            if (inList) {
+                processedLines.push(`</${listType}>`);
+                inList = false;
+                listType = null;
+            }
+            processedLines.push(line);
         }
-        
-        return fullText;
-        
-    } catch (error) {
-        console.error('Streaming error:', error);
-        throw error;
     }
+    
+    if (inList) {
+        processedLines.push(`</${listType}>`);
+    }
+    
+    html = processedLines.join('\n');
+    
+    html = html.replace(/^&gt;\s*(.+)$/gim, '<blockquote>$1</blockquote>');
+    
+    html = html.split('\n\n').map(para => {
+        para = para.trim();
+        if (para.match(/^<(h[1-6]|ul|ol|pre|blockquote)/)) {
+            return para;
+        }
+        return para ? `<p>${para.replace(/\n/g, '<br>')}</p>` : '';
+    }).join('\n');
+    
+    codeBlocks.forEach((block, index) => {
+        html = html.replace(`___CODE_BLOCK_${index}___`, block);
+    });
+    
+    inlineCodes.forEach((code, index) => {
+        html = html.replace(`___INLINE_CODE_${index}___`, code);
+    });
+    
+    return html;
 }
-*/
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
 // ===================================
 // ADDITIONAL ANIMATIONS
 // ===================================
 
-// Add CSS for typing indicator animation
 const style = document.createElement('style');
 style.textContent = `
     @keyframes bounce {
@@ -788,7 +668,6 @@ document.head.appendChild(style);
 // UTILITY FUNCTIONS
 // ===================================
 
-// Debounce function for performance
 function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -801,7 +680,6 @@ function debounce(func, wait) {
     };
 }
 
-// Format date/time
 function formatTimestamp(timestamp) {
     const date = new Date(timestamp);
     return date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
@@ -811,9 +689,7 @@ function formatTimestamp(timestamp) {
 // ACCESSIBILITY ENHANCEMENTS
 // ===================================
 
-// Add keyboard navigation
 document.addEventListener('keydown', function(e) {
-    // ESC to close chat
     if (e.key === 'Escape') {
         const chatWidget = document.getElementById('chatWidget');
         if (chatWidget.classList.contains('active')) {
@@ -826,14 +702,13 @@ document.addEventListener('keydown', function(e) {
 // PERFORMANCE MONITORING
 // ===================================
 
-// Log page load time
 window.addEventListener('load', function() {
     const loadTime = performance.timing.domContentLoadedEventEnd - performance.timing.navigationStart;
     console.log(`Page loaded in ${loadTime}ms`);
 });
 
 // ===================================
-// EXPORT FOR TESTING (if needed)
+// EXPORT FOR TESTING
 // ===================================
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
